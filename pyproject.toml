@@ -1,0 +1,24 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[project]
+name = "devagent"
+version = "0.2.0"
+description = "Analisador inteligente de projetos Python"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "customtkinter>=5.0.0",
+    "pathspec>=0.11.0",
+    "mcp>=2.0.0",
+    "pytest>=7.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+devagent = "devagent.gui:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

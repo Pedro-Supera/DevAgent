@@ -1,0 +1,88 @@
+# Contexto do projeto: DevAgent
+
+## v0.3.0-arch — Refatoração estrutural
+
+Antes da implementação futura de parser AST, integração com Groq ou cache
+SHA-256, a base foi reforçada com validação de modelos, exceções de domínio e
+proteções contra traversal por links simbólicos. Esta etapa não implementa
+nenhuma dessas funcionalidades futuras.
+
+## Visão geral da v0.2.0
+
+O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
+v0.2.0 apresenta uma interface gráfica moderna, uma varredura segura de arquivos
+e diretórios e uma integração com servidor MCP para disponibilizar os resultados
+de forma estruturada.
+
+O sistema foi pensado para:
+- analisar uma pasta de projeto sem seguir links simbólicos para fora da raiz;
+- respeitar regras do `.gitignore` e ignorar artefatos de ambiente e build;
+- apresentar árvore de arquivos, estatísticas por extensão e JSON exportável;
+- executar a análise em segundo plano para manter a interface responsiva;
+- disponibilizar as operações principais como ferramentas MCP.
+
+## Estrutura atual de módulos
+
+- `devagent/models.py`: define `ItemEstrutura` e `ResultadoScanner`, além das
+  métricas, serialização JSON e representação textual em árvore.
+- `devagent/scanner.py`: implementa `ProjectScanner`, as regras de exclusão,
+  leitura do `.gitignore` e a travessia segura do projeto.
+- `devagent/mcp_server.py`: registra as ferramentas MCP `escanear_projeto` e
+  `obter_arvore_projeto`, com o ponto de entrada do servidor.
+- `devagent/gui/app.py`: implementa a aplicação CustomTkinter, seleção de pasta,
+  métricas, progresso, abas de resultados e log de execução.
+- `devagent/exceptions.py`: define `DevAgentException`, `CaminhoInvalidoError` e
+  `ErroVarreduraError` para erros previsíveis da aplicação.
+
+## Interface gráfica
+
+A interface é construída com CustomTkinter e usa tema escuro inspirado no estilo
+visual do GitHub, com cartões, bordas discretas e cores de estado para facilitar
+a leitura. A janela oferece:
+
+- seleção do diretório a analisar;
+- métricas de arquivos, diretórios, tamanho e extensões;
+- abas para árvore do projeto, estatísticas e JSON;
+- barra de progresso e log operacional;
+- execução assíncrona da varredura em uma thread dedicada, mantendo a janela
+  responsiva durante a análise.
+
+## Testes automatizados
+
+A suíte está localizada em `tests/` e é executada com pytest. O status atual é
+de 9 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+inválidas, symlink traversal externo e consultas por extensão/tamanho.
+
+Comando de validação:
+
+```bash
+venv/bin/python -m pytest tests/ -q
+```
+
+## Execução
+
+Para iniciar a interface gráfica:
+
+```bash
+venv/bin/python -m devagent.gui.app
+```
+
+## Versionamento e colaboração
+
+O repositório Git local foi inicializado na branch `main` e recebeu o primeiro
+commit `e326a23` (`chore: initialize DevAgent repository`). Ainda não existe
+remoto configurado, portanto o primeiro push depende da URL do repositório
+oficial e da identidade/autenticação Git do responsável pelo projeto.
+
+O Cline pode continuar a partir deste estado local e configurar o remoto oficial
+antes de executar o push.
+
+Após essa configuração, validar com:
+
+```bash
+git status --short --branch
+git remote -v
+```
+
+Os commits devem incluir somente as alterações do DevAgent e usar uma mensagem
+descritiva, por exemplo: `refactor: harden scanner architecture`.
