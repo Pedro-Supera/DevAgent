@@ -100,7 +100,7 @@ class HeaderFrame(ctk.CTkFrame):
         # Badge + status
         direita = ctk.CTkFrame(self, fg_color="transparent")
         direita.grid(row=0, column=1, sticky="e")
-        _badge(direita, "v0.2.0")
+        _badge(direita, "v0.3.0")
         self._lbl_status = ctk.CTkLabel(
             direita, text="● Pronto", text_color=COR_SUCESSO,
             font=ctk.CTkFont(size=12), anchor="e",

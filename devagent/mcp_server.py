@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
 from .ast_analyzer import analisar_arquivo
+from .path_policy import validar_caminho
 from .scanner import ProjectScanner
 from .models import ASTClass, ASTFunction, ResultadoAST
 
@@ -28,7 +28,8 @@ def escanear_projeto(caminho: str) -> dict[str, Any]:
         CaminhoInvalidoError: Se `caminho` não for uma pasta válida.
         ErroVarreduraError: Se ocorrer uma falha inesperada na varredura.
     """
-    resultado = ProjectScanner(Path(caminho)).escanear()
+    raiz = validar_caminho(caminho, deve_ser_diretorio=True)
+    resultado = ProjectScanner(raiz).escanear()
     return {
         "raiz": str(resultado.raiz),
         "itens": [
@@ -59,7 +60,8 @@ def obter_arvore_projeto(caminho: str) -> str:
         CaminhoInvalidoError: Se `caminho` não for uma pasta válida.
         ErroVarreduraError: Se ocorrer uma falha inesperada na varredura.
     """
-    return ProjectScanner(Path(caminho)).escanear().para_arvore_texto()
+    raiz = validar_caminho(caminho, deve_ser_diretorio=True)
+    return ProjectScanner(raiz).escanear().para_arvore_texto()
 
 
 def _funcao_para_dict(funcao: ASTFunction) -> dict[str, Any]:
@@ -110,7 +112,8 @@ def _resultado_ast_para_dict(resultado: ResultadoAST) -> dict[str, Any]:
 @mcp.tool()
 def analisar_arquivo_python(caminho: str) -> dict[str, Any]:
     """Analisa estruturalmente um arquivo Python sem executá-lo."""
-    resultado = analisar_arquivo(Path(caminho))
+    arquivo = validar_caminho(caminho, deve_ser_diretorio=False)
+    resultado = analisar_arquivo(arquivo)
     return _resultado_ast_para_dict(resultado)
 
 

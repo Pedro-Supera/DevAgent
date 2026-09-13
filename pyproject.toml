@@ -4,7 +4,7 @@ testpaths = ["tests"]
 
 [project]
 name = "devagent"
-version = "0.2.1"
+version = "0.3.0"
 description = "Analisador inteligente de projetos Python"
 readme = "README.md"
 requires-python = ">=3.10"

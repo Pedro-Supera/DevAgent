@@ -36,11 +36,25 @@ nenhuma dessas funcionalidades futuras.
 - O retorno inclui imports, classes e métodos, funções, chamadas e informações
   de erros de sintaxe.
 - Adicionados testes específicos da integração MCP/AST; a suíte completa passou
-  com 32 testes.
+  com 35 testes.
 - A ferramenta pressupõe uso local ou confiável; uma allowlist de raízes poderá
   ser necessária antes de exposição a ambientes não confiáveis.
 
-## Visão geral da v0.2.1
+## v0.3.0-security — Limite de acesso MCP
+
+- As ferramentas MCP validam caminhos contra as raízes configuradas em
+  `DEVAGENT_ALLOWED_ROOTS`, separadas por `os.pathsep`.
+- Quando a variável não está definida, o diretório de trabalho do servidor é a
+  raiz permitida por padrão.
+- Caminhos absolutos, relativos, traversal por `..` e symlinks são resolvidos
+  antes da validação; arquivos e diretórios também são verificados conforme a
+  ferramenta utilizada.
+- A política está concentrada em `devagent/path_policy.py`, e o MCP permanece
+  como camada de exposição sem duplicar regras de domínio.
+- A proteção é adequada ao uso local/confiável atual; autenticação e políticas
+  de identidade continuam fora do escopo.
+
+## Visão geral histórica da v0.2.1
 
 O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
 v0.2.1 apresenta uma interface gráfica moderna, uma varredura segura de arquivos
@@ -86,9 +100,9 @@ a leitura. A janela oferece:
 ## Testes automatizados
 
 A suíte está localizada em `tests/` e é executada com pytest. O status atual é
-de 32 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+de 35 testes automatizados passando, cobrindo os modelos, o scanner, raízes
 inválidas, symlink traversal externo, consultas por extensão/tamanho, a análise
-AST estrutural e sua exposição MCP.
+AST estrutural, sua exposição MCP e a política de acesso por raízes.
 
 Comando de validação:
 
@@ -106,13 +120,16 @@ venv/bin/python -m devagent.gui.app
 
 ## Estado atual do repositório
 
+- A versão atual é `0.3.0`, sincronizada em `pyproject.toml`,
+  `devagent/__init__.py`, README e badge da GUI.
 - O remoto `origin` está configurado para `Pedro-Supera/DevAgent` no GitHub.
 - `main` é a branch principal e acompanha `origin/main`.
-- O analisador AST e a ferramenta MCP `analisar_arquivo_python` estão
-  implementados, com testes específicos da integração.
-- A suíte atual possui 32 testes passando.
-- A implementação mais recente ainda precisa ser commitada e enviada ao GitHub;
-  não há commit nem push desta etapa.
+- O analisador AST, a ferramenta MCP `analisar_arquivo_python` e a política de
+  acesso por raízes permitidas estão implementados.
+- A suíte atual possui 35 testes passando e o diff validado sem problemas de
+  whitespace.
+- A evolução de segurança integra esta versão e é publicada em `origin/main`
+  pelo fluxo normal de versionamento do projeto.
 
 ## Versionamento e colaboração
 

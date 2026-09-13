@@ -13,6 +13,10 @@ class CaminhoInvalidoError(DevAgentException, ValueError):
     """
 
 
+class CaminhoNaoPermitidoError(CaminhoInvalidoError):
+    """Indica que um caminho está fora das raízes permitidas pelo MCP."""
+
+
 class ErroVarreduraError(DevAgentException, RuntimeError):
     """Indica uma falha inesperada durante a preparação da varredura.
 

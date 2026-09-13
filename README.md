@@ -1,17 +1,17 @@
 # DevAgent
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Version](https://img.shields.io/badge/version-v0.2.1-brightgreen)
+![Version](https://img.shields.io/badge/version-v0.3.0-brightgreen)
 ![Tests](https://github.com/Pedro-Supera/DevAgent/actions/workflows/tests.yml/badge.svg?branch=main)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-**DevAgent v0.2.1** é um analisador/scanner de projetos Python. Oferece uma varredura estruturada e segura, exportação em JSON e árvore textual, estatísticas por extensão, uma interface gráfica em CustomTkinter e um servidor MCP reutilizável.
+**DevAgent v0.3.0** é um analisador/scanner de projetos Python. Oferece uma varredura estruturada e segura, análise AST estática, exportação em JSON e árvore textual, estatísticas por extensão, uma interface gráfica em CustomTkinter e um servidor MCP reutilizável.
 
 O DevAgent é uma ferramenta de inspeção de projetos Python. Ele ajuda a entender a estrutura de um diretório, identificar arquivos, extensões e tamanhos, analisar arquivos Python sem executá-los e exportar essas informações de forma programática. Integrações com IA fazem parte do roadmap.
 
 ## Status e versão
 
-- **Versão:** `0.2.1`
+- **Versão:** `0.3.0`
 - **Licença:** MIT
 - **Python mínimo:** `>=3.10`
 
@@ -107,11 +107,16 @@ print(resultado.erro)  # preenchido quando houver erro de sintaxe
 - Links simbólicos externos à raiz não são seguidos.
 - Arquivos inacessíveis são ignorados em vez de interromper a análise.
 - O `.gitignore` da raiz é aplicado quando disponível.
+- As ferramentas MCP aceitam apenas caminhos dentro das raízes definidas em
+	`DEVAGENT_ALLOWED_ROOTS`, separadas por `:` no Linux. Quando a variável não é
+	definida, o diretório de trabalho do servidor é a raiz permitida.
+- Caminhos são normalizados e symlinks resolvidos antes da validação, impedindo
+	traversal por `..` e links para fora da allowlist.
 
 ## Roadmap
 
-- **v0.2.1** — base funcional de scanner, GUI e MCP. O badge da GUI permanece como `v0.2.0` nesta etapa.
-- **v0.3.0** — parser AST estrutural; cache e integrações de análise avançada/IA permanecem no roadmap.
+- **v0.3.0** — scanner, análise AST estrutural, integração MCP e proteção de acesso por raízes permitidas.
+- Próximas versões — cache e integrações de análise avançada/IA permanecem no roadmap.
 
 ## Contribuição
 

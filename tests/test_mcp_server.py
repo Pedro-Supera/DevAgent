@@ -3,6 +3,9 @@
 import json
 from pathlib import Path
 
+import pytest
+
+from devagent.exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
 from devagent.mcp_server import (
     analisar_arquivo_python,
     escanear_projeto,
@@ -10,7 +13,8 @@ from devagent.mcp_server import (
 )
 
 
-def test_analisar_arquivo_python_retorna_contrato_completo(tmp_path: Path) -> None:
+def test_analisar_arquivo_python_retorna_contrato_completo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
     arquivo = tmp_path / "modulo.py"
     arquivo.write_text(
         "from .base import Base\n"
@@ -70,7 +74,8 @@ def test_analisar_arquivo_python_retorna_contrato_completo(tmp_path: Path) -> No
     json.dumps(resultado)
 
 
-def test_analisar_arquivo_python_retorna_erro_de_sintaxe(tmp_path: Path) -> None:
+def test_analisar_arquivo_python_retorna_erro_de_sintaxe(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
     arquivo = tmp_path / "invalido.py"
     arquivo.write_text("def quebrada(:\n", encoding="utf-8")
 
@@ -84,7 +89,8 @@ def test_analisar_arquivo_python_retorna_erro_de_sintaxe(tmp_path: Path) -> None
     json.dumps(resultado)
 
 
-def test_ferramentas_mcp_existentes_continuam_funcionais(tmp_path: Path) -> None:
+def test_ferramentas_mcp_existentes_continuam_funcionais(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
     arquivo = tmp_path / "arquivo.py"
     arquivo.write_text("x = 1", encoding="utf-8")
 
@@ -94,3 +100,59 @@ def test_ferramentas_mcp_existentes_continuam_funcionais(tmp_path: Path) -> None
     assert resultado_scanner["total_arquivos"] == 1
     assert resultado_scanner["itens"][0]["caminho_relativo"] == "arquivo.py"
     assert "arquivo.py" in arvore
+
+
+def test_mcp_rejeita_caminho_fora_da_raiz_permitida(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    permitida = tmp_path / "permitida"
+    externa = tmp_path / "externa"
+    permitida.mkdir()
+    externa.mkdir()
+    arquivo = externa / "segredo.py"
+    arquivo.write_text("segredo = True", encoding="utf-8")
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(permitida))
+
+    with pytest.raises(CaminhoNaoPermitidoError):
+        analisar_arquivo_python(str(arquivo))
+
+
+def test_mcp_rejeita_traversal_e_symlink_externo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    permitida = tmp_path / "permitida"
+    externa = tmp_path / "externa"
+    permitida.mkdir()
+    externa.mkdir()
+    arquivo = externa / "segredo.py"
+    arquivo.write_text("segredo = True", encoding="utf-8")
+    (permitida / "atalho.py").symlink_to(arquivo)
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(permitida))
+
+    with pytest.raises(CaminhoNaoPermitidoError):
+        analisar_arquivo_python(str(permitida / ".." / "externa" / "segredo.py"))
+    with pytest.raises(CaminhoNaoPermitidoError):
+        analisar_arquivo_python(str(permitida / "atalho.py"))
+
+
+def test_mcp_rejeita_caminho_inexistente_e_tipo_incorreto(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
+
+    with pytest.raises(CaminhoInvalidoError):
+        analisar_arquivo_python(str(tmp_path / "nao_existe.py"))
+    with pytest.raises(CaminhoInvalidoError):
+        analisar_arquivo_python(str(tmp_path))
+    with pytest.raises(CaminhoInvalidoError):
+        escanear_projeto(str(tmp_path / "nao_existe"))
+
+
+def test_mcp_aceita_caminho_relativo_na_raiz_de_trabalho(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    arquivo = tmp_path / "relativo.py"
+    arquivo.write_text("valor = 1", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("DEVAGENT_ALLOWED_ROOTS", raising=False)
+
+    resultado = analisar_arquivo_python("relativo.py")
+
+    assert resultado["caminho"] == str(arquivo.resolve())
+    assert resultado["erro"] is None
