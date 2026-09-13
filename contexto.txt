@@ -18,6 +18,15 @@ SHA-256, a base foi reforçada com validação de modelos, exceções de domíni
 proteções contra traversal por links simbólicos. Esta etapa não implementa
 nenhuma dessas funcionalidades futuras.
 
+## v0.3.0-ast — Análise estrutural estática
+
+- Criado `devagent/ast_analyzer.py` com `ast.parse()` e `ast.NodeVisitor`.
+- O analisador identifica imports, funções, classes, métodos, decorators e chamadas,
+  preservando linhas e a relação classe → métodos.
+- Erros de sintaxe retornam `ResultadoAST` controlado, sem derrubar a aplicação.
+- O código analisado nunca é importado nem executado.
+- Adicionados 10 testes determinísticos em `tests/test_ast_analyzer.py`.
+
 ## Visão geral da v0.2.1
 
 O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
@@ -34,8 +43,8 @@ O sistema foi pensado para:
 
 ## Estrutura atual de módulos
 
-- `devagent/models.py`: define `ItemEstrutura` e `ResultadoScanner`, além das
-  métricas, serialização JSON e representação textual em árvore.
+- `devagent/models.py`: define os modelos de scanner e os modelos tipados do
+  resultado AST (`ASTImport`, `ASTClass`, `ASTFunction`, `ASTCall`, `ResultadoAST`).
 - `devagent/scanner.py`: implementa `ProjectScanner`, as regras de exclusão,
   leitura do `.gitignore` e a travessia segura do projeto.
 - `devagent/mcp_server.py`: registra as ferramentas MCP `escanear_projeto` e
@@ -43,7 +52,9 @@ O sistema foi pensado para:
 - `devagent/gui/app.py`: implementa a aplicação CustomTkinter, seleção de pasta,
   métricas, progresso, abas de resultados e log de execução.
 - `devagent/exceptions.py`: define `DevAgentException`, `CaminhoInvalidoError` e
-  `ErroVarreduraError` para erros previsíveis da aplicação.
+  `ErroVarreduraError` e `ErroSintaxeAST` para erros previsíveis da aplicação.
+- `devagent/ast_analyzer.py`: analisa estaticamente arquivos Python sem executar
+  o código analisado.
 
 ## Interface gráfica
 
@@ -61,8 +72,9 @@ a leitura. A janela oferece:
 ## Testes automatizados
 
 A suíte está localizada em `tests/` e é executada com pytest. O status atual é
-de 19 testes automatizados passando, cobrindo os modelos, o scanner, raízes
-inválidas, symlink traversal externo e consultas por extensão/tamanho.
+de 29 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+inválidas, symlink traversal externo, consultas por extensão/tamanho e a análise
+AST estrutural.
 
 Comando de validação:
 

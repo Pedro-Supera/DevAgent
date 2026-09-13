@@ -19,3 +19,5 @@ class ErroVarreduraError(DevAgentException, RuntimeError):
     Args:
         mensagem: Descrição da falha encontrada durante a varredura.
     """
+
+

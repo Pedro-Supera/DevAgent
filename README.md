@@ -7,7 +7,7 @@
 
 **DevAgent v0.2.1** é um analisador/scanner de projetos Python. Oferece uma varredura estruturada e segura, exportação em JSON e árvore textual, estatísticas por extensão, uma interface gráfica em CustomTkinter e um servidor MCP reutilizável.
 
-O DevAgent é uma ferramenta de inspeção de projetos Python. Ele ajuda a entender a estrutura de um diretório, identificar arquivos, extensões e tamanhos, e exportar essas informações de forma programática. Funcionalidades de análise avançada e integração com IA fazem parte do roadmap.
+O DevAgent é uma ferramenta de inspeção de projetos Python. Ele ajuda a entender a estrutura de um diretório, identificar arquivos, extensões e tamanhos, analisar arquivos Python sem executá-los e exportar essas informações de forma programática. Integrações com IA fazem parte do roadmap.
 
 ## Status e versão
 
@@ -15,7 +15,7 @@ O DevAgent é uma ferramenta de inspeção de projetos Python. Ele ajuda a enten
 - **Licença:** MIT
 - **Python mínimo:** `>=3.10`
 
-O foco desta release é a base de scanner, GUI e MCP. Não é um agente autônomo. Análises baseadas em AST e IA estão planejadas para versões futuras.
+O foco desta release é a base de scanner, GUI, MCP e análise estrutural AST. Não é um agente autônomo. Integrações com IA estão planejadas para versões futuras.
 
 ## Funcionalidades atuais
 
@@ -23,6 +23,7 @@ O foco desta release é a base de scanner, GUI e MCP. Não é um agente autônom
 - Varredura segura sem seguir links simbólicos que fogem da raiz.
 - Exclusões de segurança padrão (`.env`, `.git`, `__pycache__`, `venv`, etc.) e suporte ao `.gitignore` da raiz analisada.
 - Modelos de dados validados e serialização JSON/árvore textual.
+- Analisador AST estático para imports, funções, classes, métodos, decorators e chamadas.
 - Interface gráfica CustomTkinter com tema escuro, seleção de pasta, progresso e abas de resultados.
 - Servidor MCP com ferramentas `escanear_projeto` e `obter_arvore_projeto`.
 
@@ -32,6 +33,7 @@ O foco desta release é a base de scanner, GUI e MCP. Não é um agente autônom
 - `devagent/models.py`: modelos tipados e métricas de resultado.
 - `devagent/gui/app.py`: interface gráfica CustomTkinter.
 - `devagent/mcp_server.py`: servidor MCP.
+- `devagent/ast_analyzer.py`: análise estrutural estática de arquivos Python com a biblioteca padrão `ast`.
 - `devagent/exceptions.py`: exceções de domínio.
 
 ## Instalação
@@ -84,6 +86,20 @@ print(resultado.para_arvore_texto())
 print(resultado.para_json())
 ```
 
+Para analisar um arquivo Python sem importá-lo ou executá-lo:
+
+```python
+from pathlib import Path
+
+from devagent.ast_analyzer import analisar_arquivo
+
+resultado = analisar_arquivo(Path("/caminho/arquivo.py"))
+print(resultado.classes)
+print(resultado.funcoes)
+print(resultado.chamadas)
+print(resultado.erro)  # preenchido quando houver erro de sintaxe
+```
+
 ## Segurança
 
 - A varredura respeita exclusões de ambiente, build e cache.
@@ -94,7 +110,7 @@ print(resultado.para_json())
 ## Roadmap
 
 - **v0.2.1** — base funcional de scanner, GUI e MCP. O badge da GUI permanece como `v0.2.0` nesta etapa.
-- **v0.3.0** — parser AST, cache e integrações de análise avançada/IA.
+- **v0.3.0** — parser AST estrutural; cache e integrações de análise avançada/IA permanecem no roadmap.
 
 ## Contribuição
 
