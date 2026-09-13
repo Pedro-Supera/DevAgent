@@ -159,7 +159,7 @@ print(resultado.chamadas)
 print(resultado.erro)
 ```
 
-## O que vem depois
+## Roadmap
 
 ### v0.3.x — base de inspeção
 
@@ -169,9 +169,9 @@ print(resultado.erro)
 - política centralizada de caminhos
 - testes de segurança
 
-### Próxima direção — Project Intelligence
+### v0.4 — Project Intelligence
 
-A evolução planejada é aumentar a capacidade de inspeção antes de adicionar automação destrutiva:
+A próxima evolução está documentada em [#1](https://github.com/Pedro-Supera/DevAgent/issues/1): aumentar a capacidade de inspeção antes de adicionar automação destrutiva.
 
 1. listar arquivos relevantes;
 2. ler arquivos com limites controlados;
@@ -179,6 +179,8 @@ A evolução planejada é aumentar a capacidade de inspeção antes de adicionar
 4. executar testes de forma controlada;
 5. permitir que agentes raciocinem sobre resultados estruturados;
 6. somente depois avaliar edição automática com validação e rollback.
+
+**Fora do escopo por enquanto:** execução arbitrária de shell, edição automática sem validação, agente autônomo e RAG/vector DB sem necessidade demonstrada.
 
 O objetivo é evitar transformar o projeto em um agente autônomo difícil de controlar antes de existir uma base sólida.
 
