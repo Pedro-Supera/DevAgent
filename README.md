@@ -25,14 +25,14 @@ O foco desta release é a base de scanner, GUI, MCP e análise estrutural AST. N
 - Modelos de dados validados e serialização JSON/árvore textual.
 - Analisador AST estático para imports, funções, classes, métodos, decorators e chamadas.
 - Interface gráfica CustomTkinter com tema escuro, seleção de pasta, progresso e abas de resultados.
-- Servidor MCP com ferramentas `escanear_projeto` e `obter_arvore_projeto`.
+- Servidor MCP com ferramentas `escanear_projeto`, `obter_arvore_projeto` e `analisar_arquivo_python`.
 
 ## Arquitetura
 
 - `devagent/scanner.py`: varredura segura e regras de exclusão.
 - `devagent/models.py`: modelos tipados e métricas de resultado.
 - `devagent/gui/app.py`: interface gráfica CustomTkinter.
-- `devagent/mcp_server.py`: servidor MCP.
+- `devagent/mcp_server.py`: servidor MCP e camada de exposição do analisador AST.
 - `devagent/ast_analyzer.py`: análise estrutural estática de arquivos Python com a biblioteca padrão `ast`.
 - `devagent/exceptions.py`: exceções de domínio.
 
@@ -68,7 +68,8 @@ pytest
 python -m devagent.mcp_server
 ```
 
-O servidor expõe as ferramentas `escanear_projeto` e `obter_arvore_projeto`.
+O servidor expõe as ferramentas `escanear_projeto`, `obter_arvore_projeto` e
+`analisar_arquivo_python`.
 
 ## Exemplo de uso da API Python
 

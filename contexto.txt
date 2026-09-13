@@ -27,6 +27,19 @@ nenhuma dessas funcionalidades futuras.
 - O código analisado nunca é importado nem executado.
 - Adicionados 10 testes determinísticos em `tests/test_ast_analyzer.py`.
 
+## v0.3.0-mcp-ast — Exposição MCP do analisador AST
+
+- Adicionada a ferramenta `analisar_arquivo_python`, que recebe um caminho de
+  arquivo e retorna uma estrutura serializável com o resultado AST.
+- O MCP atua somente como camada de exposição: chama `analisar_arquivo` e
+  converte `ResultadoAST` para dicionário, sem duplicar a análise estrutural.
+- O retorno inclui imports, classes e métodos, funções, chamadas e informações
+  de erros de sintaxe.
+- Adicionados testes específicos da integração MCP/AST; a suíte completa passou
+  com 32 testes.
+- A ferramenta pressupõe uso local ou confiável; uma allowlist de raízes poderá
+  ser necessária antes de exposição a ambientes não confiáveis.
+
 ## Visão geral da v0.2.1
 
 O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
@@ -47,12 +60,13 @@ O sistema foi pensado para:
   resultado AST (`ASTImport`, `ASTClass`, `ASTFunction`, `ASTCall`, `ResultadoAST`).
 - `devagent/scanner.py`: implementa `ProjectScanner`, as regras de exclusão,
   leitura do `.gitignore` e a travessia segura do projeto.
-- `devagent/mcp_server.py`: registra as ferramentas MCP `escanear_projeto` e
-  `obter_arvore_projeto`, com o ponto de entrada do servidor.
+- `devagent/mcp_server.py`: registra as ferramentas MCP `escanear_projeto`,
+  `obter_arvore_projeto` e `analisar_arquivo_python`, com o ponto de entrada do
+  servidor.
 - `devagent/gui/app.py`: implementa a aplicação CustomTkinter, seleção de pasta,
   métricas, progresso, abas de resultados e log de execução.
 - `devagent/exceptions.py`: define `DevAgentException`, `CaminhoInvalidoError` e
-  `ErroVarreduraError` e `ErroSintaxeAST` para erros previsíveis da aplicação.
+  `ErroVarreduraError` para erros previsíveis da aplicação.
 - `devagent/ast_analyzer.py`: analisa estaticamente arquivos Python sem executar
   o código analisado.
 
@@ -72,9 +86,9 @@ a leitura. A janela oferece:
 ## Testes automatizados
 
 A suíte está localizada em `tests/` e é executada com pytest. O status atual é
-de 29 testes automatizados passando, cobrindo os modelos, o scanner, raízes
-inválidas, symlink traversal externo, consultas por extensão/tamanho e a análise
-AST estrutural.
+de 32 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+inválidas, symlink traversal externo, consultas por extensão/tamanho, a análise
+AST estrutural e sua exposição MCP.
 
 Comando de validação:
 
@@ -90,32 +104,32 @@ Para iniciar a interface gráfica:
 venv/bin/python -m devagent.gui.app
 ```
 
+## Estado atual do repositório
+
+- O remoto `origin` está configurado para `Pedro-Supera/DevAgent` no GitHub.
+- `main` é a branch principal e acompanha `origin/main`.
+- O analisador AST e a ferramenta MCP `analisar_arquivo_python` estão
+  implementados, com testes específicos da integração.
+- A suíte atual possui 32 testes passando.
+- A implementação mais recente ainda precisa ser commitada e enviada ao GitHub;
+  não há commit nem push desta etapa.
+
 ## Versionamento e colaboração
 
-O repositório Git local foi inicializado na branch `main` e recebeu o primeiro
-commit `e326a23` (`chore: initialize DevAgent repository`). Ainda não existe
-remoto configurado, portanto o primeiro push depende da URL do repositório
-oficial e da identidade/autenticação Git do responsável pelo projeto.
-
-O Cline pode continuar a partir deste estado local e configurar o remoto oficial
-antes de executar o push.
-
-Após essa configuração, validar com:
-
-```bash
-git status --short --branch
-git remote -v
-```
+O repositório Git local utiliza a branch principal `main` e o remoto `origin`.
+Alterações devem ser mantidas restritas ao escopo da tarefa, validadas antes do
+commit e publicadas somente quando explicitamente autorizado.
 
 Os commits devem incluir somente as alterações do DevAgent e usar uma mensagem
 descritiva, por exemplo: `refactor: harden scanner architecture`.
+
 ## Primeiro push remoto (2026-09-05)
 
 - **URL do remoto**: `https://github.com/Pedro-Supera/DevAgent.git`
 - **Branch principal**: `main`
 - **Hash do commit enviado**: `12d847c203a27f20fbd8988ddc65a1dcf05d0546` (`chore: initialize DevAgent repository`)
 - **Data do primeiro push**: 2026-09-05 00:56:30 -03
-- **Resultado**: ✅ SUCESSO. O remote `origin` foi configurado com a URL informada e `git push -u origin main` empurrou os 19 objetos (16.23 KiB) com sucesso. A branch `main` local agora rastreia `origin/main`.
+- **Resultado**: ✅ SUCESSO. O remoto `origin` foi configurado com a URL informada e `git push -u origin main` empurrou os 19 objetos (16.23 KiB) com sucesso. Naquele momento, a branch `main` local passou a rastrear `origin/main`.
 
 Validação pós-push:
 
@@ -131,4 +145,6 @@ origin  https://github.com/Pedro-Supera/DevAgent.git (fetch)
 origin  https://github.com/Pedro-Supera/DevAgent.git (push)
 ```
 
-A árvore de trabalho permanece limpa e o estado de versionamento está oficialmente publicado.
+Naquele momento, a árvore de trabalho estava limpa e o estado de versionamento
+foi publicado no GitHub. Esse registro é histórico e não descreve o estado atual
+das alterações locais.
