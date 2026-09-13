@@ -51,6 +51,10 @@ class ItemEstrutura:
 class ResultadoScanner:
     """Armazena o resultado completo de uma varredura de projeto.
 
+    NOTA: Esta classe é mutável, ao contrário de `ItemEstrutura`. Campos como
+    `total_arquivos` podem ser alterados após a criação, mas isso não é
+    recomendado pelo fluxo normal do scanner.
+
     Args:
         raiz: Diretório absoluto usado como raiz da varredura.
         itens: Entradas encontradas durante a varredura.

@@ -2,4 +2,3 @@ customtkinter
 pathspec
 mcp
 pytest
-python-dotenv

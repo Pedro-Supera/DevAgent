@@ -1,3 +1,3 @@
 """Núcleo do DevAgent para análise modular de projetos Python."""
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"

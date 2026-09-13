@@ -1,5 +1,16 @@
 # Contexto do projeto: DevAgent
 
+## v0.2.1 — Qualidade e documentação
+
+Esta versão traz melhorias de qualidade sem alterações de arquitetura:
+
+- `pytest` movido para dependência opcional `dev` (não runtime)
+- `python-dotenv` removido (não utilizado no código)
+- Documentação de `ResultadoScanner` corrigida: é mutável, não imutável
+- Novos testes de modelos em `tests/test_models.py`
+- Versão 0.2.1 em `pyproject.toml`, `__init__.py`, `README.md`
+  - O badge da GUI em `devagent/gui/app.py` permanecerá com v0.2.0 nesta etapa (TODO: atualizar em v0.3.0)
+
 ## v0.3.0-arch — Refatoração estrutural
 
 Antes da implementação futura de parser AST, integração com Groq ou cache
@@ -7,10 +18,10 @@ SHA-256, a base foi reforçada com validação de modelos, exceções de domíni
 proteções contra traversal por links simbólicos. Esta etapa não implementa
 nenhuma dessas funcionalidades futuras.
 
-## Visão geral da v0.2.0
+## Visão geral da v0.2.1
 
 O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
-v0.2.0 apresenta uma interface gráfica moderna, uma varredura segura de arquivos
+v0.2.1 apresenta uma interface gráfica moderna, uma varredura segura de arquivos
 e diretórios e uma integração com servidor MCP para disponibilizar os resultados
 de forma estruturada.
 
@@ -50,7 +61,7 @@ a leitura. A janela oferece:
 ## Testes automatizados
 
 A suíte está localizada em `tests/` e é executada com pytest. O status atual é
-de 9 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+de 19 testes automatizados passando, cobrindo os modelos, o scanner, raízes
 inválidas, symlink traversal externo e consultas por extensão/tamanho.
 
 Comando de validação:
