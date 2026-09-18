@@ -71,7 +71,10 @@ class ProjectFileReader:
     def ler_arquivo(self, caminho_relativo: str | Path) -> ArquivoLido:
         """Lê um arquivo relativo à raiz sem executar ou interpretar seu conteúdo."""
         relativo = self._validar_caminho_relativo(caminho_relativo)
-        caminho = (self.root_path / relativo).resolve(strict=True)
+        try:
+            caminho = (self.root_path / relativo).resolve(strict=True)
+        except (OSError, RuntimeError) as erro:
+            raise ArquivoNaoPermitidoError("Arquivo inexistente ou inacessível") from erro
 
         if self.root_path not in (caminho, *caminho.parents):
             raise ArquivoNaoPermitidoError("Caminho fora da raiz do projeto")
