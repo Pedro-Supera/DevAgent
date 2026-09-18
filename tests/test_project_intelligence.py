@@ -28,10 +28,7 @@ def test_listar_arquivos_retorna_caminhos_relativos_e_respeita_exclusoes(tmp_pat
 
     resultado = ProjectFileReader(tmp_path).listar_arquivos()
 
-    assert [item.caminho_relativo for item in resultado] == [
-        Path("main.py"),
-        Path("README.md"),
-    ] or {item.caminho_relativo for item in resultado} == {
+    assert {item.caminho_relativo for item in resultado} == {
         Path("main.py"),
         Path("README.md"),
     }
@@ -53,7 +50,7 @@ def test_ler_arquivo_rejeita_inexistente_diretorio_e_traversal(tmp_path: Path) -
 
     leitor = ProjectFileReader(tmp_path)
 
-    with pytest.raises((ArquivoNaoPermitidoError, FileNotFoundError)):
+    with pytest.raises(ArquivoNaoPermitidoError):
         leitor.ler_arquivo("nao_existe.txt")
     with pytest.raises(ArquivoNaoPermitidoError):
         leitor.ler_arquivo("src")
