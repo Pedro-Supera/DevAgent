@@ -6,23 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .ast_analyzer import analisar_codigo
+from .exceptions import ArquivoBinarioError, ArquivoMuitoGrandeError, ArquivoNaoPermitidoError
 from .models import ItemEstrutura
 from .scanner import ProjectScanner
 
 
 MAX_TAMANHO_ARQUIVO_PADRAO = 100_000
-
-
-class ArquivoNaoPermitidoError(ValueError):
-    """Indica que um arquivo não pode ser lido pela política de segurança."""
-
-
-class ArquivoMuitoGrandeError(ArquivoNaoPermitidoError):
-    """Indica que o arquivo excede o limite de leitura."""
-
-
-class ArquivoBinarioError(ArquivoNaoPermitidoError):
-    """Indica que o conteúdo não é texto UTF-8 válido."""
 
 
 @dataclass(frozen=True)
