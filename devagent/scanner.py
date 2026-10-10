@@ -60,6 +60,7 @@ PADROES_ARQUIVOS_IGNORADOS = (
     "id_ed25519",
     "id_ed25519.*",
 )
+MAX_ENTRADAS_VARREDURA = 50_000
 
 
 class ProjectScanner:
@@ -95,6 +96,7 @@ class ProjectScanner:
         except (OSError, RuntimeError) as erro:
             raise CaminhoInvalidoError(f"Não foi possível resolver a raiz: {root_path}") from erro
         self._gitignore = self._carregar_gitignore()
+        self._entradas_visitadas = 0
 
     def escanear(self) -> ResultadoScanner:
         """Executa a varredura e ignora entradas inacessíveis.
@@ -104,9 +106,10 @@ class ProjectScanner:
 
         Raises:
             ErroVarreduraError: Se ocorrer uma falha inesperada ao percorrer a
-                raiz. Erros de permissão, arquivos removidos e symlinks externos
-                são tratados como entradas ignoradas.
+            raiz ou se a varredura exceder o limite de entradas. Erros de
+            permissão, arquivos removidos e symlinks externos são ignorados.
         """
+        self._entradas_visitadas = 0
         try:
             itens = list(self._visitar(self.root_path))
         except (PermissionError, FileNotFoundError):
@@ -121,7 +124,7 @@ class ProjectScanner:
         )
 
     def _visitar(self, diretorio: Path) -> Iterator[ItemEstrutura]:
-        """Percorre recursivamente um diretório sem seguir symlinks externos.
+        """Percorre a árvore em profundidade sem recursão Python.
 
         Args:
             diretorio: Diretório resolvido que será visitado.
@@ -129,12 +132,17 @@ class ProjectScanner:
         Yields:
             Itens acessíveis encontrados no diretório.
         """
-        try:
-            entradas = sorted(os.scandir(diretorio), key=lambda entrada: entrada.name.lower())
-        except (PermissionError, FileNotFoundError, OSError):
+        entradas = self._ler_entradas_ordenadas(diretorio)
+        if entradas is None:
             return
+        pilha: list[Iterator[os.DirEntry[str]]] = [iter(entradas)]
 
-        for entrada in entradas:
+        while pilha:
+            try:
+                entrada = next(pilha[-1])
+            except StopIteration:
+                pilha.pop()
+                continue
             caminho = Path(entrada.path)
             try:
                 if entrada.is_symlink():
@@ -162,7 +170,27 @@ class ProjectScanner:
             )
             yield item
             if eh_diretorio:
-                yield from self._visitar(caminho)
+                entradas_filhas = self._ler_entradas_ordenadas(caminho)
+                if entradas_filhas is not None:
+                    pilha.append(iter(entradas_filhas))
+
+    def _ler_entradas_ordenadas(
+        self,
+        diretorio: Path,
+    ) -> list[os.DirEntry[str]] | None:
+        try:
+            with os.scandir(diretorio) as iterator:
+                entradas: list[os.DirEntry[str]] = []
+                for entrada in iterator:
+                    self._entradas_visitadas += 1
+                    if self._entradas_visitadas > MAX_ENTRADAS_VARREDURA:
+                        raise ErroVarreduraError(
+                            f"Varredura excedeu o limite de {MAX_ENTRADAS_VARREDURA} entradas"
+                        )
+                    entradas.append(entrada)
+        except (PermissionError, FileNotFoundError, OSError):
+            return None
+        return sorted(entradas, key=lambda entrada: entrada.name.lower())
 
     def _deve_ignorar(self, relativo: Path, eh_diretorio: bool) -> bool:
         """Aplica as regras de exclusão a uma entrada.

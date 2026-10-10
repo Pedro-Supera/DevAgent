@@ -162,6 +162,8 @@ print(resultado.erro)  # preenchido quando a análise não puder ser concluída
 ## Segurança
 
 - A varredura respeita exclusões de ambiente, build e cache.
+- Credenciais comuns (`.ssh`, `.aws`, `.kube`, `.envrc`, `.npmrc`, chaves,
+  certificados e estados Terraform) são excluídas do scanner e das regras Git.
 - Links simbólicos externos à raiz não são seguidos.
 - Arquivos inacessíveis são ignorados em vez de interromper a análise.
 - O `.gitignore` da raiz é aplicado quando disponível.
@@ -171,6 +173,9 @@ print(resultado.erro)  # preenchido quando a análise não puder ser concluída
 - Uma allowlist definida vazia ou com entradas vazias é rejeitada. A análise AST
     aceita arquivos de até 1 MiB e retorna erro controlado para arquivos maiores,
     encoding inválido ou recursão excessiva.
+- A varredura usa travessia iterativa e falha de forma controlada acima de
+    50.000 entradas. Respostas MCP usam caminhos relativos e erros de allowlist
+    não incluem o caminho absoluto.
 - Caminhos são normalizados e symlinks resolvidos antes da validação, impedindo
     traversal por `..` e links para fora da allowlist.
 - O servidor MCP não fornece autenticação. Use-o apenas em ambiente local ou

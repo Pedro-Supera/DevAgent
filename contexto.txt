@@ -62,6 +62,11 @@ nenhuma dessas funcionalidades futuras.
   variável não existe. Configurações vazias ou com entradas vazias falham fechadas.
 - A GUI agora cria cada painel uma única vez e mantém referências às instâncias
   efetivamente posicionadas na janela.
+- O scanner usa travessia iterativa, limita a varredura a 50.000 entradas e
+  exclui diretórios/arquivos comuns de credenciais; o `.gitignore` replica essas
+  exclusões para evitar inclusão acidental no Git.
+- As respostas MCP usam caminhos relativos à raiz autorizada mais específica e
+  erros de acesso negado não ecoam caminhos absolutos.
 - O MCP não possui autenticação e a validação de caminhos não elimina condições
   de corrida do filesystem; mantenha o servidor restrito a uso local/confiável.
 

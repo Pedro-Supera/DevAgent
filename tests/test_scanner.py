@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from devagent.models import ResultadoScanner
-from devagent.exceptions import CaminhoInvalidoError
+from devagent.exceptions import CaminhoInvalidoError, ErroVarreduraError
+from devagent import scanner as scanner_module
 from devagent.scanner import ProjectScanner
 
 
@@ -20,6 +20,28 @@ def test_varredura_basica(tmp_path: Path) -> None:
     assert resultado.total_arquivos == 2
     assert resultado.total_diretorios == 1
     assert {item.caminho_relativo for item in resultado.itens} == {Path("main.py"), Path("src"), Path("src/util.py")}
+
+
+def test_varredura_suporta_arvore_profunda_sem_recursao(tmp_path: Path) -> None:
+    diretorio = tmp_path
+    for _ in range(450):
+        diretorio = diretorio / "d"
+        diretorio.mkdir()
+
+    resultado = ProjectScanner(tmp_path).escanear()
+
+    assert resultado.total_diretorios == 450
+
+
+def test_varredura_falha_controladamente_ao_exceder_limite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    for nome in ("a.py", "b.py", "c.py"):
+        (tmp_path / nome).touch()
+    monkeypatch.setattr(scanner_module, "MAX_ENTRADAS_VARREDURA", 2)
+
+    with pytest.raises(ErroVarreduraError, match="limite de 2 entradas"):
+        ProjectScanner(tmp_path).escanear()
 
 
 def test_exclusao_de_arquivos_e_pastas_ignorados(tmp_path: Path) -> None:
