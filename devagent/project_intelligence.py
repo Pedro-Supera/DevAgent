@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
+from .ast_analyzer import analisar_codigo
 from .exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
-from .models import ItemEstrutura
+from .models import ItemEstrutura, ResultadoAST
 from .path_policy import validar_caminho
 from .scanner import ProjectScanner
 
@@ -20,6 +22,47 @@ class ConteudoArquivo:
     caminho_relativo: Path
     conteudo: str
     tamanho_bytes: int
+
+
+@dataclass(frozen=True)
+class ErroAnaliseArquivo:
+    """Falha de leitura ou análise identificada para um arquivo do projeto."""
+
+    caminho_relativo: Path
+    erro: str
+    linha: int | None = None
+    coluna: int | None = None
+
+
+@dataclass(frozen=True)
+class ResultadoAnaliseProjeto:
+    """Métricas agregadas da análise estática dos arquivos Python do projeto."""
+
+    total_arquivos_python: int
+    total_imports: int
+    total_classes: int
+    total_funcoes: int
+    total_chamadas: int
+    arquivos_com_erro: list[ErroAnaliseArquivo]
+
+    def para_dict(self) -> dict[str, Any]:
+        """Serializa o resultado sem expor caminhos absolutos."""
+        return {
+            "total_arquivos_python": self.total_arquivos_python,
+            "total_imports": self.total_imports,
+            "total_classes": self.total_classes,
+            "total_funcoes": self.total_funcoes,
+            "total_chamadas": self.total_chamadas,
+            "arquivos_com_erro": [
+                {
+                    "caminho": str(item.caminho_relativo),
+                    "erro": item.erro,
+                    "linha": item.linha,
+                    "coluna": item.coluna,
+                }
+                for item in self.arquivos_com_erro
+            ],
+        }
 
 
 def listar_arquivos(caminho_projeto: str | Path) -> list[ItemEstrutura]:
@@ -101,4 +144,43 @@ def ler_arquivo(
         caminho_relativo=relativo,
         conteudo=conteudo,
         tamanho_bytes=len(conteudo_bytes),
+    )
+
+
+def analisar_projeto(caminho_projeto: str | Path) -> ResultadoAnaliseProjeto:
+    """Agrega métricas AST sem executar os arquivos Python encontrados."""
+    raiz = validar_caminho(caminho_projeto, deve_ser_diretorio=True)
+    arquivos_python = [
+        item for item in ProjectScanner(raiz).escanear().itens
+        if not item.eh_diretorio and item.caminho_relativo.suffix == ".py"
+    ]
+    resultados: list[ResultadoAST] = []
+    erros: list[ErroAnaliseArquivo] = []
+
+    for item in arquivos_python:
+        try:
+            conteudo = ler_arquivo(raiz, item.caminho_relativo)
+        except CaminhoInvalidoError as erro:
+            erros.append(ErroAnaliseArquivo(item.caminho_relativo, str(erro)))
+            continue
+        resultado = analisar_codigo(conteudo.conteudo, item.caminho_relativo)
+        if resultado.erro:
+            erros.append(
+                ErroAnaliseArquivo(
+                    caminho_relativo=item.caminho_relativo,
+                    erro=resultado.erro,
+                    linha=resultado.linha_erro,
+                    coluna=resultado.coluna_erro,
+                )
+            )
+        else:
+            resultados.append(resultado)
+
+    return ResultadoAnaliseProjeto(
+        total_arquivos_python=len(arquivos_python),
+        total_imports=sum(len(item.imports) for item in resultados),
+        total_classes=sum(len(item.classes) for item in resultados),
+        total_funcoes=sum(len(item.funcoes) for item in resultados),
+        total_chamadas=sum(len(item.chamadas) for item in resultados),
+        arquivos_com_erro=erros,
     )

@@ -9,6 +9,7 @@ from mcp.server.mcpserver import MCPServer
 from .ast_analyzer import analisar_arquivo
 from .path_policy import caminho_relativo_permitido, validar_caminho
 from .project_intelligence import (
+    analisar_projeto as _analisar_projeto,
     ler_arquivo as _ler_arquivo,
     listar_arquivos as _listar_arquivos,
 )
@@ -157,6 +158,12 @@ def ler_arquivo(
         "conteudo": resultado.conteudo,
         "tamanho_bytes": resultado.tamanho_bytes,
     }
+
+
+@mcp.tool()
+def analisar_projeto(caminho_projeto: str) -> dict[str, Any]:
+    """Agrega métricas AST dos arquivos Python do projeto sem executá-los."""
+    return _analisar_projeto(caminho_projeto).para_dict()
 
 
 def iniciar_servidor() -> None:

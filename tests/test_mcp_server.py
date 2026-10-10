@@ -7,6 +7,7 @@ import pytest
 
 from devagent.exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
 from devagent.mcp_server import (
+    analisar_projeto,
     analisar_arquivo_python,
     escanear_projeto,
     ler_arquivo,
@@ -182,6 +183,7 @@ def test_novas_ferramentas_mcp_leem_e_analisam_arquivos_com_caminhos_relativos(
 
     arquivos = listar_arquivos(str(tmp_path))
     conteudo = ler_arquivo(str(tmp_path), "src/modulo.py")
+    analise = analisar_projeto(str(tmp_path))
     assert arquivos == {
         "arquivos": [
             {
@@ -196,6 +198,14 @@ def test_novas_ferramentas_mcp_leem_e_analisam_arquivos_com_caminhos_relativos(
         "caminho": "src/modulo.py",
         "conteudo": "import os\nos.getcwd()\n",
         "tamanho_bytes": 22,
+    }
+    assert analise == {
+        "total_arquivos_python": 1,
+        "total_imports": 1,
+        "total_classes": 0,
+        "total_funcoes": 0,
+        "total_chamadas": 1,
+        "arquivos_com_erro": [],
     }
 
 

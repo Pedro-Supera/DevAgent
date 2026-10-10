@@ -7,6 +7,7 @@ import pytest
 from devagent.exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
 from devagent.project_intelligence import (
     MAX_TAMANHO_ARQUIVO_LEITURA_BYTES,
+    analisar_projeto,
     ler_arquivo,
     listar_arquivos,
 )
@@ -117,3 +118,29 @@ def test_ler_arquivo_nao_permite_aumentar_limite_global(tmp_path: Path) -> None:
             limite_bytes=MAX_TAMANHO_ARQUIVO_LEITURA_BYTES + 1,
         )
 
+
+def test_analisar_projeto_agrega_ast_sem_executar_arquivos(tmp_path: Path) -> None:
+    marcador = tmp_path / "executado.txt"
+    (tmp_path / "main.py").write_text(
+        "import os\n"
+        "class Exemplo:\n"
+        "    def rodar(self):\n"
+        "        os.getcwd()\n"
+        f"Path({str(marcador)!r}).write_text('executado')\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "invalido.py").write_text("def quebrada(:\n", encoding="utf-8")
+    (tmp_path / "ignorado.txt").write_text("não é Python", encoding="utf-8")
+
+    resultado = analisar_projeto(tmp_path)
+
+    assert resultado.total_arquivos_python == 2
+    assert resultado.total_imports == 1
+    assert resultado.total_classes == 1
+    assert resultado.total_funcoes == 1
+    assert resultado.total_chamadas == 3
+    assert [item.caminho_relativo for item in resultado.arquivos_com_erro] == [
+        Path("invalido.py")
+    ]
+    assert not marcador.exists()
+    assert resultado.para_dict()["arquivos_com_erro"][0]["caminho"] == "invalido.py"
