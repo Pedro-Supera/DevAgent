@@ -1,8 +1,12 @@
 """Testes do analisador estrutural baseado em AST."""
 
+import ast
 from pathlib import Path
 
-from devagent.ast_analyzer import analisar_arquivo, analisar_codigo
+import pytest
+
+from devagent import ast_analyzer
+from devagent.ast_analyzer import MAX_TAMANHO_ARQUIVO_AST_BYTES, analisar_arquivo, analisar_codigo
 
 
 def test_arquivo_vazio(tmp_path: Path) -> None:
@@ -16,6 +20,39 @@ def test_arquivo_vazio(tmp_path: Path) -> None:
     assert resultado.classes == []
     assert resultado.funcoes == []
     assert resultado.chamadas == []
+
+
+def test_arquivo_acima_do_limite_nao_e_analisado(tmp_path: Path) -> None:
+    arquivo = tmp_path / "grande.py"
+    arquivo.write_bytes(b"x" * (MAX_TAMANHO_ARQUIVO_AST_BYTES + 1))
+
+    resultado = analisar_arquivo(arquivo)
+
+    assert resultado.erro == f"Arquivo excede o limite de {MAX_TAMANHO_ARQUIVO_AST_BYTES} bytes."
+    assert resultado.funcoes == []
+    assert resultado.chamadas == []
+
+
+def test_arquivo_com_encoding_invalido_retorna_erro_controlado(tmp_path: Path) -> None:
+    arquivo = tmp_path / "encoding.py"
+    arquivo.write_bytes(b"valor = '\xff'")
+
+    resultado = analisar_arquivo(arquivo)
+
+    assert resultado.erro == "Arquivo não está codificado em UTF-8."
+    assert resultado.imports == []
+
+
+def test_recursao_excessiva_retorna_erro_controlado(monkeypatch: pytest.MonkeyPatch) -> None:
+    def exceder_recursao(self: ast_analyzer._Visitor, arvore: ast.AST) -> None:
+        raise RecursionError
+
+    monkeypatch.setattr(ast_analyzer._Visitor, "visit", exceder_recursao)
+
+    resultado = analisar_codigo("valor = 1")
+
+    assert resultado.erro == "Análise excedeu o limite de recursão."
+    assert resultado.funcoes == []
 
 
 def test_import_simples() -> None:
