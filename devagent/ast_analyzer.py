@@ -7,6 +7,8 @@ from pathlib import Path
 
 from .models import ASTCall, ASTClass, ASTFunction, ASTImport, ResultadoAST
 
+MAX_TAMANHO_ARQUIVO_AST_BYTES = 1_048_576
+
 
 class _Visitor(ast.NodeVisitor):
     """Extrai elementos estruturais sem executar o módulo visitado."""
@@ -99,7 +101,17 @@ def _nome_da_chamada(node: ast.AST) -> str:
 def analisar_arquivo(caminho: Path) -> ResultadoAST:
     """Analisa estaticamente um arquivo Python."""
     caminho = Path(caminho)
-    codigo = caminho.read_text(encoding="utf-8")
+    with caminho.open("rb") as arquivo:
+        conteudo = arquivo.read(MAX_TAMANHO_ARQUIVO_AST_BYTES + 1)
+    if len(conteudo) > MAX_TAMANHO_ARQUIVO_AST_BYTES:
+        return _resultado_sem_elementos(
+            caminho,
+            f"Arquivo excede o limite de {MAX_TAMANHO_ARQUIVO_AST_BYTES} bytes.",
+        )
+    try:
+        codigo = conteudo.decode("utf-8")
+    except UnicodeDecodeError:
+        return _resultado_sem_elementos(caminho, "Arquivo não está codificado em UTF-8.")
     return analisar_codigo(codigo, caminho)
 
 
@@ -108,24 +120,41 @@ def analisar_codigo(codigo: str, caminho: Path | str = Path("<string>")) -> Resu
     caminho = Path(caminho)
     try:
         arvore = ast.parse(codigo, filename=str(caminho))
+        visitante = _Visitor()
+        visitante.visit(arvore)
     except SyntaxError as erro:
-        return ResultadoAST(
-            caminho=caminho,
-            imports=[],
-            classes=[],
-            funcoes=[],
-            chamadas=[],
-            erro=erro.msg,
-            linha_erro=erro.lineno,
-            coluna_erro=erro.offset,
+        return _resultado_sem_elementos(
+            caminho,
+            erro.msg,
+            linha=erro.lineno,
+            coluna=erro.offset,
         )
+    except RecursionError:
+        return _resultado_sem_elementos(caminho, "Análise excedeu o limite de recursão.")
 
-    visitante = _Visitor()
-    visitante.visit(arvore)
     return ResultadoAST(
         caminho=caminho,
         imports=visitante.imports,
         classes=visitante.classes,
         funcoes=visitante.funcoes,
         chamadas=visitante.chamadas,
+    )
+
+
+def _resultado_sem_elementos(
+    caminho: Path,
+    erro: str,
+    *,
+    linha: int | None = None,
+    coluna: int | None = None,
+) -> ResultadoAST:
+    return ResultadoAST(
+        caminho=caminho,
+        imports=[],
+        classes=[],
+        funcoes=[],
+        chamadas=[],
+        erro=erro,
+        linha_erro=linha,
+        coluna_erro=coluna,
     )
