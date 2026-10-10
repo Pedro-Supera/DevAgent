@@ -80,6 +80,22 @@ def ler_arquivo(
 ) -> ConteudoArquivo:
     """Lê um arquivo UTF-8 dentro do projeto, sem seguir caminhos externos."""
     raiz = validar_caminho(caminho_projeto, deve_ser_diretorio=True)
+    scanner = ProjectScanner(raiz)
+    return _ler_arquivo_na_raiz(
+        raiz,
+        caminho_relativo,
+        limite_bytes=limite_bytes,
+        scanner=scanner,
+    )
+
+
+def _ler_arquivo_na_raiz(
+    raiz: Path,
+    caminho_relativo: str | Path,
+    *,
+    limite_bytes: int,
+    scanner: ProjectScanner,
+) -> ConteudoArquivo:
     relativo = Path(caminho_relativo)
     if (
         not str(caminho_relativo)
@@ -112,7 +128,6 @@ def ler_arquivo(
     if raiz not in arquivo.parents:
         raise CaminhoNaoPermitidoError("O arquivo está fora da raiz do projeto")
 
-    scanner = ProjectScanner(raiz)
     caminho_resolvido_relativo = arquivo.relative_to(raiz)
     if scanner.caminho_ignorado(relativo) or scanner.caminho_ignorado(
         caminho_resolvido_relativo
@@ -150,8 +165,9 @@ def ler_arquivo(
 def analisar_projeto(caminho_projeto: str | Path) -> ResultadoAnaliseProjeto:
     """Agrega métricas AST sem executar os arquivos Python encontrados."""
     raiz = validar_caminho(caminho_projeto, deve_ser_diretorio=True)
+    scanner = ProjectScanner(raiz)
     arquivos_python = [
-        item for item in ProjectScanner(raiz).escanear().itens
+        item for item in scanner.escanear().itens
         if not item.eh_diretorio and item.caminho_relativo.suffix == ".py"
     ]
     resultados: list[ResultadoAST] = []
@@ -159,7 +175,12 @@ def analisar_projeto(caminho_projeto: str | Path) -> ResultadoAnaliseProjeto:
 
     for item in arquivos_python:
         try:
-            conteudo = ler_arquivo(raiz, item.caminho_relativo)
+            conteudo = _ler_arquivo_na_raiz(
+                raiz,
+                item.caminho_relativo,
+                limite_bytes=MAX_TAMANHO_ARQUIVO_LEITURA_BYTES,
+                scanner=scanner,
+            )
         except CaminhoInvalidoError as erro:
             erros.append(ErroAnaliseArquivo(item.caminho_relativo, str(erro)))
             continue

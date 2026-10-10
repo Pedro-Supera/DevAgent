@@ -11,6 +11,8 @@ from devagent.project_intelligence import (
     ler_arquivo,
     listar_arquivos,
 )
+from devagent.models import ResultadoScanner
+from devagent.scanner import ProjectScanner
 
 
 @pytest.fixture(autouse=True)
@@ -144,3 +146,23 @@ def test_analisar_projeto_agrega_ast_sem_executar_arquivos(tmp_path: Path) -> No
     ]
     assert not marcador.exists()
     assert resultado.para_dict()["arquivos_com_erro"][0]["caminho"] == "invalido.py"
+
+
+def test_analisar_projeto_varre_a_raiz_uma_vez(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "a.py").write_text("valor = 1", encoding="utf-8")
+    (tmp_path / "b.py").write_text("valor = 2", encoding="utf-8")
+    quantidade_varreduras = 0
+    varrer = ProjectScanner.escanear
+
+    def contar_varreduras(scanner: ProjectScanner) -> ResultadoScanner:
+        nonlocal quantidade_varreduras
+        quantidade_varreduras += 1
+        return varrer(scanner)
+
+    monkeypatch.setattr(ProjectScanner, "escanear", contar_varreduras)
+
+    analisar_projeto(tmp_path)
+
+    assert quantidade_varreduras == 1
