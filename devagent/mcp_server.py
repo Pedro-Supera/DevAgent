@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
 from .ast_analyzer import analisar_arquivo
+from .exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
 from .path_policy import caminho_relativo_permitido, validar_caminho
 from .project_intelligence import (
     analisar_projeto as _analisar_projeto,
@@ -117,7 +119,21 @@ def _resultado_ast_para_dict(resultado: ResultadoAST) -> dict[str, Any]:
 @mcp.tool()
 def analisar_arquivo_python(caminho: str) -> dict[str, Any]:
     """Analisa estruturalmente um arquivo Python sem executá-lo."""
-    arquivo = validar_caminho(caminho, deve_ser_diretorio=False)
+    caminho_original = Path(caminho).expanduser()
+    if caminho_original.is_symlink():
+        raise CaminhoNaoPermitidoError("Links simbólicos não são aceitos para análise direta")
+
+    arquivo = validar_caminho(caminho_original, deve_ser_diretorio=False)
+    if arquivo.suffix.lower() != ".py":
+        raise CaminhoInvalidoError("O caminho não é um arquivo Python")
+
+    # A ferramenta de análise direta precisa aplicar as mesmas exclusões básicas
+    # do scanner; caso contrário, um arquivo ignorado poderia ser analisado ao
+    # fornecer seu caminho completo, contornando a listagem do projeto.
+    scanner = ProjectScanner(arquivo.parent)
+    if scanner.caminho_ignorado(Path(arquivo.name)):
+        raise CaminhoNaoPermitidoError("O arquivo está excluído da análise")
+
     resultado = analisar_arquivo(arquivo)
     resposta = _resultado_ast_para_dict(resultado)
     resposta["caminho"] = caminho_relativo_permitido(arquivo)
