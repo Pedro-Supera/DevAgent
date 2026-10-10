@@ -156,9 +156,26 @@ resultado = analisar_arquivo(Path("/caminho/arquivo.py"))
 print(resultado.classes)
 print(resultado.funcoes)
 print(resultado.chamadas)
-print(resultado.erro)
+print(resultado.erro)  # preenchido quando a análise não puder ser concluída
 ```
 
+## Segurança
+
+- A varredura respeita exclusões de ambiente, build e cache.
+- Links simbólicos externos à raiz não são seguidos.
+- Arquivos inacessíveis são ignorados em vez de interromper a análise.
+- O `.gitignore` da raiz é aplicado quando disponível.
+- As ferramentas MCP aceitam apenas caminhos dentro das raízes definidas em
+    `DEVAGENT_ALLOWED_ROOTS`, separadas por `:` no Linux. Quando a variável não é
+    definida, o diretório de trabalho do servidor é a raiz permitida.
+- Uma allowlist definida vazia ou com entradas vazias é rejeitada. A análise AST
+    aceita arquivos de até 1 MiB e retorna erro controlado para arquivos maiores,
+    encoding inválido ou recursão excessiva.
+- Caminhos são normalizados e symlinks resolvidos antes da validação, impedindo
+    traversal por `..` e links para fora da allowlist.
+- O servidor MCP não fornece autenticação. Use-o apenas em ambiente local ou
+    confiável; a validação de caminhos não substitui isolamento do processo nem
+    protege contra alterações concorrentes do filesystem.
 ## Roadmap
 
 ### v0.3.x — base de inspeção
