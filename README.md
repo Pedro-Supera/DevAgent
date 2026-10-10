@@ -74,7 +74,8 @@ A segurança de acesso ao filesystem é tratada como parte da arquitetura, não 
 - Quando a variável não é definida, o diretório de trabalho do servidor é a raiz permitida.
 - Caminhos são normalizados e resolvidos antes da validação.
 - `..` não permite escapar da allowlist.
-- Symlinks externos à raiz são rejeitados.
+- Symlinks são rejeitados na análise direta de arquivos, inclusive quando apontam para dentro da raiz permitida.
+- A análise MCP de arquivo individual aceita somente arquivos `.py` e aplica as exclusões do scanner e do `.gitignore` do diretório analisado.
 - Caminhos inexistentes ou do tipo incorreto são rejeitados pela política quando aplicável.
 - O analisador AST usa `ast.parse()` e `ast.NodeVisitor`; o código analisado não é importado nem executado.
 
