@@ -9,6 +9,8 @@ from devagent.exceptions import CaminhoInvalidoError, CaminhoNaoPermitidoError
 from devagent.mcp_server import (
     analisar_arquivo_python,
     escanear_projeto,
+    ler_arquivo,
+    listar_arquivos,
     obter_arvore_projeto,
 )
 
@@ -167,3 +169,43 @@ def test_mcp_rejeita_configuracao_de_raizes_vazia(
 
     with pytest.raises(CaminhoInvalidoError, match="caminho vazio"):
         escanear_projeto(str(tmp_path))
+
+
+def test_novas_ferramentas_mcp_leem_e_analisam_arquivos_com_caminhos_relativos(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "modulo.py").write_text(
+        "import os\nos.getcwd()\n", encoding="utf-8"
+    )
+
+    arquivos = listar_arquivos(str(tmp_path))
+    conteudo = ler_arquivo(str(tmp_path), "src/modulo.py")
+    assert arquivos == {
+        "arquivos": [
+            {
+                "caminho_relativo": "src/modulo.py",
+                "tamanho_bytes": 22,
+                "extensao": ".py",
+            }
+        ],
+        "total_arquivos": 1,
+    }
+    assert conteudo == {
+        "caminho": "src/modulo.py",
+        "conteudo": "import os\nos.getcwd()\n",
+        "tamanho_bytes": 22,
+    }
+
+
+def test_mcp_rejeita_leitura_fora_da_raiz_do_projeto_nao_so_da_allowlist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    projeto = tmp_path / "projeto"
+    projeto.mkdir()
+    (tmp_path / "privado.txt").write_text("privado", encoding="utf-8")
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
+
+    with pytest.raises(CaminhoInvalidoError):
+        ler_arquivo(str(projeto), "../privado.txt")

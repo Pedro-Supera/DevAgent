@@ -8,6 +8,10 @@ from mcp.server.mcpserver import MCPServer
 
 from .ast_analyzer import analisar_arquivo
 from .path_policy import caminho_relativo_permitido, validar_caminho
+from .project_intelligence import (
+    ler_arquivo as _ler_arquivo,
+    listar_arquivos as _listar_arquivos,
+)
 from .scanner import ProjectScanner
 from .models import ASTClass, ASTFunction, ResultadoAST
 
@@ -117,6 +121,42 @@ def analisar_arquivo_python(caminho: str) -> dict[str, Any]:
     resposta = _resultado_ast_para_dict(resultado)
     resposta["caminho"] = caminho_relativo_permitido(arquivo)
     return resposta
+
+
+@mcp.tool()
+def listar_arquivos(caminho_projeto: str) -> dict[str, Any]:
+    """Lista arquivos permitidos do projeto usando caminhos relativos."""
+    arquivos = _listar_arquivos(caminho_projeto)
+    return {
+        "arquivos": [
+            {
+                "caminho_relativo": item.caminho_relativo.as_posix(),
+                "tamanho_bytes": item.tamanho_bytes,
+                "extensao": item.extensao,
+            }
+            for item in arquivos
+        ],
+        "total_arquivos": len(arquivos),
+    }
+
+
+@mcp.tool()
+def ler_arquivo(
+    caminho_projeto: str,
+    caminho_relativo: str,
+    limite_bytes: int = 1_048_576,
+) -> dict[str, Any]:
+    """Lê um arquivo UTF-8 do projeto respeitando a política de caminhos."""
+    resultado = _ler_arquivo(
+        caminho_projeto,
+        caminho_relativo,
+        limite_bytes=limite_bytes,
+    )
+    return {
+        "caminho": resultado.caminho_relativo.as_posix(),
+        "conteudo": resultado.conteudo,
+        "tamanho_bytes": resultado.tamanho_bytes,
+    }
 
 
 def iniciar_servidor() -> None:

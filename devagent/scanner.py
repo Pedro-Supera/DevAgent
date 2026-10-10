@@ -211,6 +211,26 @@ class ProjectScanner:
             return True
         return False
 
+    def caminho_ignorado(self, relativo: Path) -> bool:
+        """Informa se um caminho relativo seria excluído da varredura."""
+        relativo = Path(relativo)
+        if relativo.is_absolute() or ".." in relativo.parts:
+            return True
+
+        partes = relativo.parts
+        for indice, parte in enumerate(partes):
+            if parte in DIRETORIOS_IGNORADOS or parte.endswith(".egg-info"):
+                return True
+            caminho_parcial = Path(*partes[: indice + 1]).as_posix()
+            if self._gitignore and self._gitignore.match_file(caminho_parcial):
+                return True
+            if indice < len(partes) - 1 and self._deve_ignorar(
+                Path(caminho_parcial), eh_diretorio=True
+            ):
+                return True
+
+        return self._deve_ignorar(relativo, eh_diretorio=False)
+
     def _carregar_gitignore(self) -> pathspec.PathSpec | None:
         """Carrega o `.gitignore` da raiz, quando estiver disponível.
 
