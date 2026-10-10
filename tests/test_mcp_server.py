@@ -32,7 +32,7 @@ def test_analisar_arquivo_python_retorna_contrato_completo(tmp_path: Path, monke
     resultado = analisar_arquivo_python(str(arquivo))
 
     assert resultado == {
-        "caminho": str(arquivo),
+        "caminho": "modulo.py",
         "imports": [
             {"modulo": "base", "nomes": ["Base"], "import_relativo": 1},
             {"modulo": "os", "nomes": [], "import_relativo": 0},
@@ -81,7 +81,7 @@ def test_analisar_arquivo_python_retorna_erro_de_sintaxe(tmp_path: Path, monkeyp
 
     resultado = analisar_arquivo_python(str(arquivo))
 
-    assert resultado["caminho"] == str(arquivo)
+    assert resultado["caminho"] == "invalido.py"
     assert resultado["erro"]
     assert resultado["linha_erro"] == 1
     assert resultado["coluna_erro"] is not None
@@ -97,6 +97,7 @@ def test_ferramentas_mcp_existentes_continuam_funcionais(tmp_path: Path, monkeyp
     resultado_scanner = escanear_projeto(str(tmp_path))
     arvore = obter_arvore_projeto(str(tmp_path))
 
+    assert resultado_scanner["raiz"] == "."
     assert resultado_scanner["total_arquivos"] == 1
     assert resultado_scanner["itens"][0]["caminho_relativo"] == "arquivo.py"
     assert "arquivo.py" in arvore
@@ -111,8 +112,9 @@ def test_mcp_rejeita_caminho_fora_da_raiz_permitida(tmp_path: Path, monkeypatch:
     arquivo.write_text("segredo = True", encoding="utf-8")
     monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(permitida))
 
-    with pytest.raises(CaminhoNaoPermitidoError):
+    with pytest.raises(CaminhoNaoPermitidoError) as erro:
         analisar_arquivo_python(str(arquivo))
+    assert str(arquivo.resolve()) not in str(erro.value)
 
 
 def test_mcp_rejeita_traversal_e_symlink_externo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -154,7 +156,7 @@ def test_mcp_aceita_caminho_relativo_na_raiz_de_trabalho(
 
     resultado = analisar_arquivo_python("relativo.py")
 
-    assert resultado["caminho"] == str(arquivo.resolve())
+    assert resultado["caminho"] == "relativo.py"
     assert resultado["erro"] is None
 
 

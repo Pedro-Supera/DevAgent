@@ -24,14 +24,26 @@ def validar_caminho(
     alvo = _resolver_existente(caminho, "Caminho inexistente")
     raizes = _obter_raizes_permitidas()
     if not any(_esta_dentro_de(alvo, raiz) for raiz in raizes):
-        raise CaminhoNaoPermitidoError(
-            f"Caminho fora das raízes permitidas: {alvo}"
-        )
+        raise CaminhoNaoPermitidoError("Caminho fora das raízes permitidas")
     if deve_ser_diretorio and not alvo.is_dir():
         raise CaminhoInvalidoError(f"O caminho não é um diretório: {alvo}")
     if not deve_ser_diretorio and not alvo.is_file():
         raise CaminhoInvalidoError(f"O caminho não é um arquivo: {alvo}")
     return alvo
+
+
+def caminho_relativo_permitido(caminho: str | Path) -> str:
+    """Retorna um caminho relativo à raiz permitida mais específica."""
+    alvo = _resolver_existente(caminho, "Caminho inexistente")
+    raizes = [
+        raiz for raiz in _obter_raizes_permitidas()
+        if _esta_dentro_de(alvo, raiz)
+    ]
+    if not raizes:
+        raise CaminhoNaoPermitidoError("Caminho fora das raízes permitidas")
+    raiz = max(raizes, key=lambda item: len(item.parts))
+    relativo = alvo.relative_to(raiz)
+    return relativo.as_posix() or "."
 
 
 def _obter_raizes_permitidas() -> tuple[Path, ...]:

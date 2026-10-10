@@ -7,7 +7,7 @@ from typing import Any
 from mcp.server.mcpserver import MCPServer
 
 from .ast_analyzer import analisar_arquivo
-from .path_policy import validar_caminho
+from .path_policy import caminho_relativo_permitido, validar_caminho
 from .scanner import ProjectScanner
 from .models import ASTClass, ASTFunction, ResultadoAST
 
@@ -31,7 +31,7 @@ def escanear_projeto(caminho: str) -> dict[str, Any]:
     raiz = validar_caminho(caminho, deve_ser_diretorio=True)
     resultado = ProjectScanner(raiz).escanear()
     return {
-        "raiz": str(resultado.raiz),
+        "raiz": caminho_relativo_permitido(resultado.raiz),
         "itens": [
             {
                 "caminho_relativo": str(item.caminho_relativo),
@@ -114,7 +114,9 @@ def analisar_arquivo_python(caminho: str) -> dict[str, Any]:
     """Analisa estruturalmente um arquivo Python sem executá-lo."""
     arquivo = validar_caminho(caminho, deve_ser_diretorio=False)
     resultado = analisar_arquivo(arquivo)
-    return _resultado_ast_para_dict(resultado)
+    resposta = _resultado_ast_para_dict(resultado)
+    resposta["caminho"] = caminho_relativo_permitido(arquivo)
+    return resposta
 
 
 def iniciar_servidor() -> None:
