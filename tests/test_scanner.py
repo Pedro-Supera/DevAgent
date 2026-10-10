@@ -39,6 +39,26 @@ def test_exclusao_de_arquivos_e_pastas_ignorados(tmp_path: Path) -> None:
     assert caminhos == {Path("ok.py")}
 
 
+def test_ignora_artefatos_comuns_de_credenciais(tmp_path: Path) -> None:
+    nomes_ignorados = (
+        ".envrc", "prod.env", ".netrc", ".npmrc", ".pypirc",
+        "identity.p12", "identity.pfx", "app.keystore", "access.token",
+        "terraform.tfstate", "credentials.json", "service-account-prod.json",
+        "id_rsa", "id_ed25519",
+    )
+    for nome in nomes_ignorados:
+        (tmp_path / nome).write_text("sensitive", encoding="utf-8")
+    for diretorio in (".ssh", ".aws", ".kube", ".azure"):
+        pasta = tmp_path / diretorio
+        pasta.mkdir()
+        (pasta / "config").write_text("sensitive", encoding="utf-8")
+    (tmp_path / "app.py").write_text("print('safe')", encoding="utf-8")
+
+    resultado = ProjectScanner(tmp_path).escanear()
+
+    assert {item.caminho_relativo for item in resultado.itens} == {Path("app.py")}
+
+
 def test_exportacao_json_e_arvore(tmp_path: Path) -> None:
     (tmp_path / ".gitignore").write_text("privado/\n", encoding="utf-8")
     (tmp_path / "publico.txt").write_text("conteudo", encoding="utf-8")
