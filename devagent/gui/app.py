@@ -6,7 +6,7 @@ import json
 import queue
 import threading
 from pathlib import Path
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from typing import Any, Callable
 
 import customtkinter as ctk
@@ -421,21 +421,21 @@ class DevAgentApp(ctk.CTk):
     def _construir_interface(self) -> None:
         """Cria e posiciona todos os painéis da janela."""
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
 
-        HeaderFrame(self).grid(row=0, column=0, padx=28, pady=(20, 8), sticky="ew")
+        self._header = HeaderFrame(self)
+        self._header.grid(row=0, column=0, padx=28, pady=(20, 8), sticky="ew")
         self._selecao = SelecaoFrame(self, ao_escolher=self._iniciar_analise)
         self._selecao.grid(row=1, column=0, padx=28, pady=8, sticky="ew")
-        MetricasFrame(self).grid(row=2, column=0, padx=28, pady=8, sticky="ew")
-        ProgressoFrame(self).grid(row=3, column=0, padx=28, pady=(4, 0), sticky="ew")
-        AbasFrame(self).grid(row=4, column=0, padx=28, pady=8, sticky="nsew")
-        LogFrame(self).grid(row=5, column=0, padx=28, pady=(8, 20), sticky="nsew")
-
-        self._metricas = MetricasFrame(self.winfo_children()[2])  # type: ignore[arg-type]
-        self._progress = ProgressoFrame(self.winfo_children()[3])  # type: ignore[arg-type]
-        self._abas = AbasFrame(self.winfo_children()[4])  # type: ignore[arg-type]
-        self._log = LogFrame(self.winfo_children()[5])  # type: ignore[arg-type]
-        self._status = HeaderFrame(self.winfo_children()[0]).status_label  # type: ignore[arg-type]
+        self._metricas = MetricasFrame(self)
+        self._metricas.grid(row=2, column=0, padx=28, pady=8, sticky="ew")
+        self._progress = ProgressoFrame(self)
+        self._progress.grid(row=3, column=0, padx=28, pady=(4, 0), sticky="ew")
+        self._abas = AbasFrame(self)
+        self._abas.grid(row=4, column=0, padx=28, pady=8, sticky="nsew")
+        self._log = LogFrame(self)
+        self._log.grid(row=5, column=0, padx=28, pady=(8, 20), sticky="nsew")
+        self._status = self._header.status_label
 
     # ── Ações ──────────────────────────────────────────────────────
     def _iniciar_analise(self) -> None:
@@ -447,7 +447,7 @@ class DevAgentApp(ctk.CTk):
         """
         caminho = Path(self._selecao.pasta()).expanduser()
         if not caminho.exists() or not caminho.is_dir():
-            ctk.messagebox.showwarning("Caminho inválido", "Informe uma pasta válida para analisar.")
+            messagebox.showwarning("Caminho inválido", "Informe uma pasta válida para analisar.")
             return
         if self._thread and self._thread.is_alive():
             return
@@ -494,7 +494,7 @@ class DevAgentApp(ctk.CTk):
             self._progress.falhar()
             self._status.configure(text="● Falha", text_color=COR_ERRO)
             self._log.adicionar(f"[{self._agora()}] ERRO: {valor}")
-            ctk.messagebox.showerror("Erro na análise", str(valor))
+            messagebox.showerror("Erro na análise", str(valor))
         else:
             resultado = valor
             assert isinstance(resultado, ResultadoScanner)
