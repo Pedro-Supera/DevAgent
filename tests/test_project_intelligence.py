@@ -117,7 +117,8 @@ def test_analisar_projeto_agrega_ast_e_registra_erros(tmp_path: Path) -> None:
     assert resultado.classes == 1
     assert resultado.funcoes == 2
     assert resultado.metodos == 1
-    assert resultado.chamadas == 2
+    # Conta cada nó ast.Call, incluindo `App()` e a chamada de método aninhada.
+    assert resultado.chamadas == 3
     assert resultado.arquivos_com_erro_sintaxe == [Path("quebrado.py")]
     assert resultado.arquivos_com_erro_leitura == []
 
