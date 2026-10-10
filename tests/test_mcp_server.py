@@ -225,9 +225,9 @@ def test_analisar_arquivo_python_rejeita_arquivos_excluidos(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
-    (tmp_path / ".gitignore").write_text("privado.py\\n", encoding="utf-8")
-    (tmp_path / ".env.py").write_text("class Segredo: pass\\n", encoding="utf-8")
-    (tmp_path / "privado.py").write_text("class Privado: pass\\n", encoding="utf-8")
+    (tmp_path / ".gitignore").write_text("privado.py\n", encoding="utf-8")
+    (tmp_path / ".env.py").write_text("class Segredo: pass\n", encoding="utf-8")
+    (tmp_path / "privado.py").write_text("class Privado: pass\n", encoding="utf-8")
 
     with pytest.raises(CaminhoNaoPermitidoError):
         analisar_arquivo_python(str(tmp_path / ".env.py"))
@@ -240,7 +240,7 @@ def test_analisar_arquivo_python_rejeita_symlink_interno(
 ) -> None:
     monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
     alvo = tmp_path / "alvo.py"
-    alvo.write_text("class Alvo: pass\\n", encoding="utf-8")
+    alvo.write_text("class Alvo: pass\n", encoding="utf-8")
     link = tmp_path / "atalho.py"
     link.symlink_to(alvo)
 
@@ -253,7 +253,7 @@ def test_analisar_arquivo_python_rejeita_extensao_nao_python(
 ) -> None:
     monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", str(tmp_path))
     arquivo = tmp_path / "notas.txt"
-    arquivo.write_text("class Nota: pass\\n", encoding="utf-8")
+    arquivo.write_text("class Nota: pass\n", encoding="utf-8")
 
     with pytest.raises(CaminhoInvalidoError, match="arquivo Python"):
         analisar_arquivo_python(str(arquivo))
