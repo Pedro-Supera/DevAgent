@@ -36,11 +36,11 @@ def validar_caminho(
 
 def _obter_raizes_permitidas() -> tuple[Path, ...]:
     configuracao = os.environ.get(VARIAVEL_RAIZES_PERMITIDAS)
-    valores = configuracao.split(os.pathsep) if configuracao else [os.getcwd()]
+    valores = [os.getcwd()] if configuracao is None else configuracao.split(os.pathsep)
+    if any(not valor.strip() for valor in valores):
+        raise CaminhoInvalidoError("A configuração de raízes permitidas contém um caminho vazio")
     raizes: list[Path] = []
     for valor in valores:
-        if not valor.strip():
-            continue
         raiz = _resolver_existente(valor, "Raiz permitida inexistente")
         if not raiz.is_dir():
             raise CaminhoInvalidoError(f"A raiz permitida não é um diretório: {raiz}")
