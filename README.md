@@ -1,7 +1,7 @@
 # DevAgent
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Version](https://img.shields.io/badge/version-v0.3.0-brightgreen)
+![Version](https://img.shields.io/badge/version-v0.4.0-brightgreen)
 ![Tests](https://github.com/Pedro-Supera/DevAgent/actions/workflows/tests.yml/badge.svg?branch=main)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -11,7 +11,7 @@ O **DevAgent** é uma ferramenta de engenharia de software para inspecionar proj
 
 O projeto foi construído para servir como uma base confiável para futuras ferramentas assistidas por IA: primeiro os dados são coletados e validados por ferramentas determinísticas; depois um agente pode raciocinar sobre esses resultados.
 
-**Status:** `v0.3.0` · **Python:** `>=3.10` · **Licença:** MIT
+**Status:** `v0.4.0` · **Python:** `>=3.10` · **Licença:** MIT
 
 ## Por que o DevAgent existe?
 
