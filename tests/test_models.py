@@ -89,6 +89,26 @@ def test_resultado_vazio() -> None:
     assert resultado.para_arvore_texto() == "vazio/"
 
 
+def test_arvore_textual_preserva_conectores_em_irmaos_aninhados() -> None:
+    itens = [
+        ItemEstrutura(Path("src"), True, 0, ""),
+        ItemEstrutura(Path("src/sub"), True, 0, ""),
+        ItemEstrutura(Path("src/sub/b.py"), False, 1, ".py"),
+        ItemEstrutura(Path("src/a.py"), False, 1, ".py"),
+        ItemEstrutura(Path("z.py"), False, 1, ".py"),
+    ]
+    resultado = ResultadoScanner(Path("projeto"), itens, 3, 2)
+
+    assert resultado.para_arvore_texto() == (
+        "projeto/\n"
+        "├── src/\n"
+        "│   ├── sub/\n"
+        "│   │   └── b.py\n"
+        "│   └── a.py\n"
+        "└── z.py"
+    )
+
+
 def test_resultado_serialization_json() -> None:
     item = ItemEstrutura(Path("src/app.py"), False, 7, ".py")
     resultado = ResultadoScanner(Path("/projeto"), [item], 1, 0)

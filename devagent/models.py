@@ -168,22 +168,39 @@ class ResultadoScanner:
             Representação textual hierárquica dos itens encontrados.
         """
         linhas = [f"{self.raiz.name or self.raiz}/"]
-        caminhos = sorted(
-            self.itens,
-            key=lambda item: (
-                tuple(item.caminho_relativo.parts[:-1]),
-                not item.eh_diretorio,
-                item.caminho_relativo.name.lower(),
-            ),
-        )
-
-        for item in caminhos:
+        filhos: dict[tuple[str, ...], list[ItemEstrutura]] = {}
+        for item in self.itens:
             partes = item.caminho_relativo.parts
-            prefixos: list[str] = []
-            for nivel in range(len(partes) - 1):
-                prefixos.append("    " if _nivel_tem_proximo_irmao(caminhos, partes[: nivel + 1]) else "│   ")
-            marcador = "└── " if _ultimo_no_nivel(caminhos, partes) else "├── "
-            linhas.append("".join(prefixos) + marcador + partes[-1] + ("/" if item.eh_diretorio else ""))
+            filhos.setdefault(partes[:-1], []).append(item)
+        for itens_irmaos in filhos.values():
+            itens_irmaos.sort(
+                key=lambda item: (
+                    not item.eh_diretorio,
+                    item.caminho_relativo.name.casefold(),
+                    item.caminho_relativo.name,
+                )
+            )
+
+        pilha: list[tuple[list[ItemEstrutura], int, tuple[bool, ...]]] = [
+            (filhos.get((), []), 0, ())
+        ]
+        while pilha:
+            itens_irmaos, indice, continuacoes = pilha[-1]
+            if indice == len(itens_irmaos):
+                pilha.pop()
+                continue
+
+            item = itens_irmaos[indice]
+            eh_ultimo = indice == len(itens_irmaos) - 1
+            pilha[-1] = (itens_irmaos, indice + 1, continuacoes)
+            prefixos = "".join("│   " if continua else "    " for continua in continuacoes)
+            marcador = "└── " if eh_ultimo else "├── "
+            linhas.append(prefixos + marcador + item.caminho_relativo.name + ("/" if item.eh_diretorio else ""))
+
+            if item.eh_diretorio:
+                descendentes = filhos.get(item.caminho_relativo.parts, [])
+                if descendentes:
+                    pilha.append((descendentes, 0, continuacoes + (not eh_ultimo,)))
 
         return "\n".join(linhas)
 
@@ -229,37 +246,6 @@ class ResultadoScanner:
             item for item in self.itens
             if not item.eh_diretorio and item.tamanho_bytes <= limite_bytes
         ]
-
-
-def _ultimo_no_nivel(itens: list[ItemEstrutura], partes: tuple[str, ...]) -> bool:
-    """Indica se o item é o último irmão dentro do diretório pai.
-
-    Args:
-        itens: Itens que compõem a árvore.
-        partes: Componentes do caminho do item atual.
-
-    Returns:
-        `True` quando não há irmão posterior no mesmo nível.
-    """
-    candidatos = [item.caminho_relativo.parts for item in itens if len(item.caminho_relativo.parts) == len(partes)]
-    mesmos_pais = [caminho for caminho in candidatos if caminho[:-1] == partes[:-1]]
-    return mesmos_pais and mesmos_pais[-1] == partes
-
-
-def _nivel_tem_proximo_irmao(itens: list[ItemEstrutura], partes: tuple[str, ...]) -> bool:
-    """Indica se existe um item posterior no mesmo ramo da árvore.
-
-    Args:
-        itens: Itens que compõem a árvore.
-        partes: Componentes do caminho do nível atual.
-
-    Returns:
-        `True` quando existe um irmão posterior no mesmo nível.
-    """
-    pais = partes[:-1]
-    candidatos = [item.caminho_relativo.parts for item in itens if len(item.caminho_relativo.parts) == len(partes)]
-    mesmos_pais = [caminho for caminho in candidatos if caminho[:-1] == pais]
-    return bool(mesmos_pais and mesmos_pais[-1] != partes)
 
 
 @dataclass(frozen=True)
