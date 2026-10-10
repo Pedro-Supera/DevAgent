@@ -45,6 +45,8 @@ def test_arquivo_com_encoding_invalido_retorna_erro_controlado(tmp_path: Path) -
 
 def test_recursao_excessiva_retorna_erro_controlado(monkeypatch: pytest.MonkeyPatch) -> None:
     def exceder_recursao(self: ast_analyzer._Visitor, arvore: ast.AST) -> None:
+        assert isinstance(self, ast_analyzer._Visitor)
+        assert isinstance(arvore, ast.Module)
         raise RecursionError
 
     monkeypatch.setattr(ast_analyzer._Visitor, "visit", exceder_recursao)

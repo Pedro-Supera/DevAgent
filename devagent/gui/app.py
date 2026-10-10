@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import queue
 import threading
 from pathlib import Path
@@ -29,17 +28,6 @@ COR_ROSA        = "#F778BA"
 COR_FUNDO_ENTRY = "#0D1117"
 
 # ── Helpers ──────────────────────────────────────────────────────────
-def _card(parent: ctk.CTkBaseClass) -> ctk.CTkFrame:
-    """Cria um cartão visual padronizado.
-
-    Args:
-        parent: Widget pai do cartão.
-
-    Returns:
-        Frame estilizado para agrupar controles.
-    """
-    return ctk.CTkFrame(parent, fg_color=COR_CARTAO, border_width=1, border_color=COR_BORDA, corner_radius=12)
-
 def _label(master, text: str, size: int = 13, weight: str = "normal", color: str = COR_TEXTO) -> ctk.CTkLabel:
     """Cria um rótulo com a tipografia visual da aplicação.
 
