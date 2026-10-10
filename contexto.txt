@@ -54,6 +54,17 @@ nenhuma dessas funcionalidades futuras.
 - A proteção é adequada ao uso local/confiável atual; autenticação e políticas
   de identidade continuam fora do escopo.
 
+## v0.3.0-hardening — Resiliência e consistência da GUI
+
+- A leitura de arquivos para análise AST é limitada a 1 MiB; arquivos maiores,
+  encoding UTF-8 inválido e recursão excessiva retornam erros controlados.
+- `DEVAGENT_ALLOWED_ROOTS` só usa o diretório de trabalho como padrão quando a
+  variável não existe. Configurações vazias ou com entradas vazias falham fechadas.
+- A GUI agora cria cada painel uma única vez e mantém referências às instâncias
+  efetivamente posicionadas na janela.
+- O MCP não possui autenticação e a validação de caminhos não elimina condições
+  de corrida do filesystem; mantenha o servidor restrito a uso local/confiável.
+
 ## Visão geral histórica da v0.2.1
 
 O DevAgent é uma ferramenta para análise estrutural de projetos Python. A versão
@@ -99,8 +110,8 @@ a leitura. A janela oferece:
 
 ## Testes automatizados
 
-A suíte está localizada em `tests/` e é executada com pytest. O status atual é
-de 35 testes automatizados passando, cobrindo os modelos, o scanner, raízes
+A suíte está localizada em `tests/` e é executada com pytest. O status registrado
+antes do hardening era de 36 testes passando, cobrindo os modelos, o scanner, raízes
 inválidas, symlink traversal externo, consultas por extensão/tamanho, a análise
 AST estrutural, sua exposição MCP e a política de acesso por raízes.
 
@@ -126,8 +137,10 @@ venv/bin/python -m devagent.gui.app
 - `main` é a branch principal e acompanha `origin/main`.
 - O analisador AST, a ferramenta MCP `analisar_arquivo_python` e a política de
   acesso por raízes permitidas estão implementados.
-- A suíte atual possui 35 testes passando e o diff validado sem problemas de
-  whitespace.
+- A suíte atual possui 40 testes passando, incluindo limites de tamanho e
+  entradas inválidas da análise AST e falha fechada para allowlist vazia.
+- O CI executa testes em Python 3.10, 3.11 e 3.12; ainda não há etapas de lint ou
+  verificação estática de tipos.
 - A evolução de segurança integra esta versão e é publicada em `origin/main`
   pelo fluxo normal de versionamento do projeto.
 
