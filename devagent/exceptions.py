@@ -25,3 +25,15 @@ class ErroVarreduraError(DevAgentException, RuntimeError):
     """
 
 
+class ArquivoNaoPermitidoError(DevAgentException, ValueError):
+    """Indica que um arquivo não pode ser lido pela política de segurança."""
+
+
+class ArquivoMuitoGrandeError(ArquivoNaoPermitidoError):
+    """Indica que o arquivo excede o limite de leitura."""
+
+
+class ArquivoBinarioError(ArquivoNaoPermitidoError):
+    """Indica que o conteúdo não é texto UTF-8 válido."""
+
+
