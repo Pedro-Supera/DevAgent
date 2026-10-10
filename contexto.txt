@@ -69,6 +69,10 @@ nenhuma dessas funcionalidades futuras.
   erros de acesso negado não ecoam caminhos absolutos.
 - O MCP não possui autenticação e a validação de caminhos não elimina condições
   de corrida do filesystem; mantenha o servidor restrito a uso local/confiável.
+- A árvore textual usa travessia DFS iterativa, mantém irmãos agrupados sob seus
+  diretórios e evita buscas repetidas quadráticas.
+- `requirements.txt` contém apenas dependências runtime; `pytest` permanece na
+  dependência opcional `dev` e o CI cobre Python 3.10 a 3.13.
 
 ## Visão geral histórica da v0.2.1
 
@@ -115,10 +119,9 @@ a leitura. A janela oferece:
 
 ## Testes automatizados
 
-A suíte está localizada em `tests/` e é executada com pytest. O status registrado
-antes do hardening era de 36 testes passando, cobrindo os modelos, o scanner, raízes
-inválidas, symlink traversal externo, consultas por extensão/tamanho, a análise
-AST estrutural, sua exposição MCP e a política de acesso por raízes.
+A suíte atual possui 44 testes, executados com pytest. Ela cobre modelos, scanner,
+exclusões de credenciais, limite e profundidade da varredura, AST, limites de
+arquivo, política de caminhos e respostas MCP sem caminhos absolutos.
 
 Comando de validação:
 
@@ -142,9 +145,9 @@ venv/bin/python -m devagent.gui.app
 - `main` é a branch principal e acompanha `origin/main`.
 - O analisador AST, a ferramenta MCP `analisar_arquivo_python` e a política de
   acesso por raízes permitidas estão implementados.
-- A suíte atual possui 40 testes passando, incluindo limites de tamanho e
-  entradas inválidas da análise AST e falha fechada para allowlist vazia.
-- O CI executa testes em Python 3.10, 3.11 e 3.12; ainda não há etapas de lint ou
+- A suíte atual possui 44 testes passando, cobrindo também privacidade MCP,
+  exclusões de credenciais, árvore profunda e limite de entradas.
+- O CI executa testes em Python 3.10, 3.11, 3.12 e 3.13; ainda não há etapas de lint ou
   verificação estática de tipos.
 - A evolução de segurança integra esta versão e é publicada em `origin/main`
   pelo fluxo normal de versionamento do projeto.
