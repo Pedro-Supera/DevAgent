@@ -80,6 +80,21 @@ A segurança de acesso ao filesystem é tratada como parte da arquitetura, não 
 
 **Escopo atual:** uso local/trusted. Autenticação, identidade e isolamento de processos não fazem parte desta versão.
 
+## Project Intelligence v0.4
+
+A API Python e as ferramentas MCP oferecem operações de leitura controlada:
+
+- `listar_arquivos`: lista arquivos visíveis ao scanner, com caminhos relativos e
+  as mesmas exclusões de credenciais, ambientes e `.gitignore`.
+- `ler_arquivo`: lê conteúdo UTF-8 de um caminho relativo ao projeto, rejeita
+  arquivos binários e limita a leitura a 1 MiB.
+- `analisar_projeto`: agrega imports, classes, funções, chamadas e erros de
+  sintaxe dos arquivos Python sem importar nem executar o código.
+
+No servidor MCP, cada operação revalida a raiz permitida e não permite que
+`ler_arquivo` leia fora da raiz selecionada, mesmo quando outra pasta também
+está incluída na allowlist.
+
 ## Instalação
 
 ```bash
@@ -119,6 +134,9 @@ Ferramentas expostas:
 - `escanear_projeto`
 - `obter_arvore_projeto`
 - `analisar_arquivo_python`
+- `listar_arquivos`
+- `ler_arquivo`
+- `analisar_projeto`
 
 ### Política de acesso MCP
 
@@ -193,16 +211,12 @@ print(resultado.erro)  # preenchido quando a análise não puder ser concluída
 
 ### v0.4 — Project Intelligence
 
-A próxima evolução está documentada em [#1](https://github.com/Pedro-Supera/DevAgent/issues/1): aumentar a capacidade de inspeção antes de adicionar automação destrutiva.
+As operações de listagem, leitura limitada e agregação estática de informações
+do projeto estão disponíveis na API Python e no servidor MCP.
 
-1. listar arquivos relevantes;
-2. ler arquivos com limites controlados;
-3. agregar informações do projeto Python;
-4. executar testes de forma controlada;
-5. permitir que agentes raciocinem sobre resultados estruturados;
-6. somente depois avaliar edição automática com validação e rollback.
-
-**Fora do escopo por enquanto:** execução arbitrária de shell, edição automática sem validação, agente autônomo e RAG/vector DB sem necessidade demonstrada.
+**Fora do escopo por enquanto:** execução arbitrária de shell, execução
+controlada de testes, edição automática sem validação, agente autônomo e
+RAG/vector DB sem necessidade demonstrada.
 
 O objetivo é evitar transformar o projeto em um agente autônomo difícil de controlar antes de existir uma base sólida.
 
