@@ -156,3 +156,12 @@ def test_mcp_aceita_caminho_relativo_na_raiz_de_trabalho(
 
     assert resultado["caminho"] == str(arquivo.resolve())
     assert resultado["erro"] is None
+
+
+def test_mcp_rejeita_configuracao_de_raizes_vazia(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEVAGENT_ALLOWED_ROOTS", "")
+
+    with pytest.raises(CaminhoInvalidoError, match="caminho vazio"):
+        escanear_projeto(str(tmp_path))
